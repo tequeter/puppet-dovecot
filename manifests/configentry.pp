@@ -57,9 +57,11 @@ define dovecot::configentry (
   # now for the value itself
   $indent = sprintf("%${$depth * 2}s", '')
   $section = join($rsections, ' 03 ')
+  # Put dovecot_config_version first in the config file, for Dovecot 2.4.
+  $priority = if $sections == [] and $key == 'dovecot_config_version' { '01' } else { '02' }
 
   if ($comment) {
-    concat::fragment { "dovecot ${file} config ${section} 02 ${key} 01 comment":
+    concat::fragment { "dovecot ${file} config ${section} ${priority} ${key} 01 comment":
       target  => $file,
       content => join(suffix(prefix(split($comment, '\n'), "${indent}# "), "\n")),
     }
@@ -77,7 +79,7 @@ define dovecot::configentry (
     }
     default: {
       $printed_value = dovecot::print_config_value($value)
-      concat::fragment { "dovecot ${file} config ${section} 02 ${key} 02":
+      concat::fragment { "dovecot ${file} config ${section} ${priority} ${key} 02":
         target  => $file,
         content => "${indent}${key} = ${printed_value}\n",
       }
